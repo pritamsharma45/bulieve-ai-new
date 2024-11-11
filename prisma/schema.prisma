@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id                String       @id
+  email             String
+  firstName         String
+  lastName          String
+  imageUrl          String?
+  userName          String?      @unique
+  createdAt         DateTime     @default(now())
+  Comment           Comment[]
+  Like              Like[]
+  Membership        Membership[]
+  posts             Post[]
+  createdSubreddits Subreddit[]
+  Vote              Vote[]
+  communities       Community[]  @relation("CommunityUsers")
+}
+
+model Community {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  slug        String       @unique
+  description String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  userId      String?
+  Membership  Membership[]
+  posts       Post[]
+  users       User[]       @relation("CommunityUsers")
+}
+
+model Membership {
+  id          String    @id @default(uuid())
+  userId      String
+  communityId String
+  createdAt   DateTime  @default(now())
+  community   Community @relation(fields: [communityId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
+
+  @@unique([userId, communityId])
+}
+
+model Subreddit {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String?
+  posts       Post[]
+  User        User?    @relation(fields: [userId], references: [id])
+}
+
+model Post {
+  id            String     @id @default(uuid())
+  title         String
+  textContent   Json?
+  imageString   String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  subName       String?
+  userId        String?
+  communitySlug String?
+  Comment       Comment[]
+  Like          Like[]
+  Community     Community? @relation(fields: [communitySlug], references: [slug])
+  Subreddit     Subreddit? @relation(fields: [subName], references: [name])
+  User          User?      @relation(fields: [userId], references: [id])
+  Vote          Vote[]
+}
+
+model Vote {
+  id       String     @id @default(uuid())
+  postId   String?
+  userId   String?
+  voteType TypeOfVote
+  Post     Post?      @relation(fields: [postId], references: [id])
+  User     User?      @relation(fields: [userId], references: [id])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  text      String
+  createdAt DateTime @default(now())
+  userId    String?
+  postId    String?
+  Post      Post?    @relation(fields: [postId], references: [id])
+  User      User?    @relation(fields: [userId], references: [id])
+}
+
+model Like {
+  id       String   @id @default(uuid())
+  postId   String?
+  userId   String?
+  likeType LikeType @default(UNLIKE)
+  Post     Post?    @relation(fields: [postId], references: [id])
+  User     User?    @relation(fields: [userId], references: [id])
+}
+
+model processed_macro_economy_articles {
+  id              Int       @id @default(autoincrement())
+  title           String    @db.VarChar
+  link            String    @unique @db.VarChar
+  summary         String?
+  content         String?
+  published_at    DateTime? @db.Timestamp(6)
+  processed_at    DateTime? @db.Timestamp(6)
+  relevance_score Float?
+  entities        String?
+  stocks          String?
+}
+
+enum TypeOfVote {
+  UP
+  DOWN
+}
+
+enum LikeType {
+  LIKE
+  UNLIKE
+}
