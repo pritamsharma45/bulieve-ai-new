@@ -1,5 +1,8 @@
 import type { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
+import { PrismaAdapter } from "@auth/prisma-adapter"
+import prisma from '@/lib/db'
+
 import { randomBytes } from 'crypto'
 import type { UserType } from '@/types/auth'
 
